@@ -5,6 +5,7 @@ export function toPublicUser(user) {
     email: user.email,
     preferredLanguage: user.preferredLanguage,
     timezone: user.timezone,
+    isAnonymous: Boolean(user.isAnonymous),
     createdAt: user.createdAt,
   };
 }

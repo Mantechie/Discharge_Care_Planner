@@ -30,6 +30,11 @@ export function loadEnv() {
     ),
     aiProvider: (process.env.AI_PROVIDER || "mock").toLowerCase(),
     aiApiKey: process.env.AI_API_KEY?.trim() || process.env.GEMINI_API_KEY?.trim() || "",
+    rapidApiKey:
+      process.env.RAPIDAPI_KEY?.trim() ||
+      process.env.OPENAI_API_TEXT_TO_SPEECH_KEY?.trim() ||
+      "",
+    ttsRateLimitMax: parsePositiveInt(process.env.TTS_RATE_LIMIT_MAX, 20),
     aiModel: process.env.AI_MODEL?.trim() || process.env.GEMINI_MODEL?.trim() || "",
     aiTimeoutMs: parsePositiveInt(process.env.AI_TIMEOUT_MS, 45000),
     aiMaxRetries: parsePositiveInt(process.env.AI_MAX_RETRIES, 2),
@@ -82,6 +87,11 @@ export function loadEnv() {
     allowTestChatFixture:
       (process.env.ALLOW_TEST_CHAT_FIXTURE || "").toLowerCase() === "true",
     emergencyContactNumber: process.env.EMERGENCY_CONTACT_NUMBER?.trim() || "",
+    enableAnonymousSessions:
+      (process.env.ENABLE_ANONYMOUS_SESSIONS || "true").toLowerCase() ===
+      "true",
+    anonymousJwtExpiresIn:
+      process.env.ANONYMOUS_JWT_EXPIRES_IN?.trim() || "12h",
   };
 
   const errors = [];
@@ -120,6 +130,10 @@ export function loadEnv() {
 
     if (!config.aiApiKey && config.aiProvider === "gemini") {
       errors.push("AI_API_KEY is required when AI_PROVIDER=gemini in production.");
+    }
+
+    if (!config.rapidApiKey && config.aiProvider === "rapidapi") {
+      errors.push("RAPIDAPI_KEY is required when AI_PROVIDER=rapidapi in production.");
     }
   }
 

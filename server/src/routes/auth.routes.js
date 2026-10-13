@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  anonymousSession,
   register,
   login,
   refresh,
@@ -13,6 +14,7 @@ import { requireCsrfToken } from "../middleware/csrf.js";
 
 const router = Router();
 
+router.post("/anonymous-session", anonymousSession);
 router.post("/register", validateBody(registerSchema), register);
 router.post("/login", validateBody(loginSchema), login);
 router.post("/refresh", requireCsrfToken, refresh);

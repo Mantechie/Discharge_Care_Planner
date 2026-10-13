@@ -189,12 +189,44 @@ export async function logoutUser(refreshToken) {
   );
 }
 
-export function buildAuthResponse(user, config) {
+export async function createAnonymousSession(config) {
+  if (!config.enableAnonymousSessions) {
+    throw new ApiError(
+      403,
+      "ANONYMOUS_SESSIONS_DISABLED",
+      "Anonymous sessions are not available."
+    );
+  }
+
+  const passwordHash = await bcrypt.hash(generateOpaqueToken(), BCRYPT_ROUNDS);
+  const email = `guest.${randomUUID()}@anonymous.dischargecare.invalid`;
+
+  const user = await User.create({
+    name: "Guest",
+    email,
+    passwordHash,
+    isAnonymous: true,
+  });
+
+  await ReminderSetting.create({
+    userId: user._id,
+    timezone: user.timezone,
+    reviewTime: "06:00",
+  });
+
+  return user;
+}
+
+export function buildAuthResponse(user, config, options = {}) {
+  const expiresIn =
+    options.expiresIn ||
+    (user.isAnonymous ? config.anonymousJwtExpiresIn : config.jwtExpiresIn);
+
   const accessToken = signAccessToken(
     { userId: user._id.toString() },
     {
       secret: config.jwtSecret,
-      expiresIn: config.jwtExpiresIn,
+      expiresIn,
       issuer: config.jwtIssuer,
       audience: config.jwtAudience,
     }
@@ -203,7 +235,8 @@ export function buildAuthResponse(user, config) {
   return {
     user: toPublicUser(user),
     accessToken,
-    expiresIn: config.jwtExpiresIn,
+    expiresIn,
+    isAnonymous: Boolean(user.isAnonymous),
   };
 }
 

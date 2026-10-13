@@ -5,10 +5,22 @@ import {
   logoutUser,
   buildAuthResponse,
   getUserById,
+  createAnonymousSession,
 } from "../services/auth.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { setAuthCookies, clearAuthCookies, getRefreshCookieName } from "../utils/cookies.js";
 import { toPublicUser } from "../utils/userProfile.js";
+
+export const anonymousSession = asyncHandler(async (req, res) => {
+  const config = req.app.get("config");
+  const user = await createAnonymousSession(config);
+
+  res.status(201).json({
+    success: true,
+    data: buildAuthResponse(user, config),
+    message: "Anonymous session created. Use the access token for document APIs.",
+  });
+});
 
 export const register = asyncHandler(async (req, res) => {
   const config = req.app.get("config");

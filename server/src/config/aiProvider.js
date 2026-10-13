@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { EXTRACTION_FIXTURE_MARKER } from "../services/extraction.fixtures.js";
 import { answerWithMockChatProvider } from "../services/chat.mock.js";
 import { validateChatAiResponse } from "../validators/chatResponse.validator.js";
+import { generateRapidApiGeminiText } from "../services/rapidApiGemini.service.js";
 
 const CHAT_SYSTEM_PROMPT = `You are Ask DischargeCare, an assistant that helps caregivers understand the content of their selected hospital discharge summary.
 Answer only using the supplied source passages from that exact document. Do not use general medical knowledge to fill gaps.
@@ -132,6 +133,10 @@ export function createAiProvider(config) {
       return extractWithGeminiProvider(input, config);
     }
 
+    if (providerName === "rapidapi") {
+      return extractWithRapidApiProvider(input, config);
+    }
+
     throw new ApiError(
       503,
       "AI_PROVIDER_UNAVAILABLE",
@@ -146,6 +151,10 @@ export function createAiProvider(config) {
 
     if (providerName === "gemini") {
       return answerDocumentQuestionWithGemini(input, config);
+    }
+
+    if (providerName === "rapidapi") {
+      return answerDocumentQuestionWithRapidApi(input, config);
     }
 
     throw new ApiError(
@@ -211,6 +220,85 @@ async function answerDocumentQuestionWithMock(input, config) {
     provider: "mock",
     model: "mock-chat",
     data: mockAnswer,
+  };
+}
+
+async function answerDocumentQuestionWithRapidApi(input, config) {
+  const prompt = `${CHAT_SYSTEM_PROMPT}
+
+${buildChatUserPrompt(input)}
+
+Respond with JSON only.`;
+
+  const raw = await callWithRetry(
+    () => generateRapidApiGeminiText(prompt, config),
+    {
+      retries: config.aiMaxRetries,
+      delayMs: config.aiRetryDelayMs,
+    }
+  );
+
+  let parsed;
+
+  try {
+    parsed = parseJsonResponse(raw);
+  } catch {
+    throw new ApiError(
+      422,
+      "AI_INVALID_JSON",
+      "The RapidAPI Gemini provider returned invalid JSON."
+    );
+  }
+
+  const validation = validateChatAiResponse(parsed);
+
+  if (!validation.valid) {
+    throw new ApiError(
+      422,
+      "AI_INVALID_RESPONSE",
+      "The RapidAPI Gemini provider returned an invalid chat response."
+    );
+  }
+
+  return {
+    provider: "rapidapi",
+    model: "gemini-api3",
+    data: validation.value,
+  };
+}
+
+async function extractWithRapidApiProvider({ pages, language }, config) {
+  const prompt = `${SYSTEM_PROMPT}
+
+${buildUserPrompt({ pages, language })}
+
+Respond with JSON only.`;
+
+  const raw = await callWithRetry(
+    () => generateRapidApiGeminiText(prompt, config),
+    {
+      retries: config.aiMaxRetries,
+      delayMs: config.aiRetryDelayMs,
+    }
+  );
+
+  let parsed;
+
+  try {
+    parsed = parseJsonResponse(raw);
+  } catch {
+    throw new ApiError(
+      422,
+      "AI_INVALID_JSON",
+      "The RapidAPI Gemini provider returned invalid JSON."
+    );
+  }
+
+  return {
+    provider: "rapidapi",
+    model: "gemini-api3",
+    data: parsed,
+    warnings: [],
   };
 }
 

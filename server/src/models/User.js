@@ -41,6 +41,11 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    isAnonymous: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
   },
   {
     timestamps: true,

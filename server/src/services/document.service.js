@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import fs from "node:fs/promises";
+import mongoose from "mongoose";
 import { Document } from "../models/Document.js";
 import { CarePlan } from "../models/CarePlan.js";
 import { Task } from "../models/Task.js";
@@ -59,6 +60,10 @@ export function createDocumentService(config) {
   }
 
   async function getOwnedDocumentRecord(userId, documentId, { includePrivate = false } = {}) {
+    if (!mongoose.Types.ObjectId.isValid(documentId)) {
+      throw new ApiError(404, "NOT_FOUND", "Document not found.");
+    }
+
     let query = Document.findOne({
       _id: documentId,
       userId,

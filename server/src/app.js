@@ -12,6 +12,7 @@ import followUpRoutes from "./routes/followUp.routes.js";
 import reminderRoutes from "./routes/reminder.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import { createChatRouter } from "./routes/chat.routes.js";
+import { createTtsRouter } from "./routes/tts.routes.js";
 import {
   errorHandler,
   notFoundHandler,
@@ -57,6 +58,8 @@ export function createApp(config) {
     jwtAudience: "dischargecare-client",
     jwtSecret: "development-only-jwt-secret-change-before-production",
     isProduction: false,
+    enableAnonymousSessions: true,
+    anonymousJwtExpiresIn: "12h",
     ...config,
   };
 
@@ -95,6 +98,7 @@ export function createApp(config) {
   apiRouter.use("/users", userRoutes);
   apiRouter.use("/reminders", reminderRoutes);
   apiRouter.use("/chat", createChatRouter(appConfig));
+  apiRouter.use("/tts", createTtsRouter(appConfig));
 
   app.use(appConfig.apiPrefix, apiRouter);
 

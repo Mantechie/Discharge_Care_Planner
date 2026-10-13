@@ -43,5 +43,7 @@ export function getTestAppConfig() {
     disableExtractionRateLimit: true,
     allowTestChatFixture: true,
     chatMaxMessageLength: 2000,
+    enableAnonymousSessions: true,
+    anonymousJwtExpiresIn: "12h",
   };
 }

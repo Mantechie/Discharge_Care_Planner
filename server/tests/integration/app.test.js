@@ -54,6 +54,13 @@ test("GET /api/health supports the legacy React client path", async () => {
   assert.equal(body.message, "Backend connected");
 });
 
+test("GET /api/v1/health/ready reports database disconnected without test DB", async () => {
+  const { response, body } = await request("/api/v1/health/ready");
+
+  assert.equal(response.status, 503);
+  assert.equal(body.data.checks.mongodb, "disconnected");
+});
+
 test("unknown routes return the standard error format", async () => {
   const { response, body } = await request("/api/v1/unknown-route");
 
