@@ -1,8 +1,16 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import cookieParser from "cookie-parser";
 import { getCorsOrigins } from "./config/env.js";
 import healthRoutes from "./routes/health.routes.js";
+import authRoutes from "./routes/auth.routes.js";
+import documentRoutes from "./routes/document.routes.js";
+import carePlanRoutes from "./routes/carePlan.routes.js";
+import taskRoutes from "./routes/task.routes.js";
+import followUpRoutes from "./routes/followUp.routes.js";
+import reminderRoutes from "./routes/reminder.routes.js";
+import chatRoutes from "./routes/chat.routes.js";
 import {
   errorHandler,
   notFoundHandler,
@@ -11,9 +19,26 @@ import {
   requestContext,
   safeRequestLogger,
 } from "./middleware/requestContext.js";
+import { createAuthRateLimiter } from "./middleware/rateLimiter.js";
 
 export function createApp(config) {
   const app = express();
+  const appConfig = {
+    jsonBodyLimit: "1mb",
+    apiPrefix: "/api/v1",
+    clientUrl: "http://localhost:5173",
+    rateLimitWindowMs: 60000,
+    rateLimitMaxRequests: 60,
+    refreshTokenExpiresInDays: 7,
+    jwtExpiresIn: "15m",
+    jwtIssuer: "dischargecare-api",
+    jwtAudience: "dischargecare-client",
+    jwtSecret: "development-only-jwt-secret-change-before-production",
+    isProduction: false,
+    ...config,
+  };
+
+  app.set("config", appConfig);
 
   app.disable("x-powered-by");
 
@@ -28,18 +53,28 @@ export function createApp(config) {
 
   app.use(
     cors({
-      origin: getCorsOrigins(config.clientUrl),
+      origin: getCorsOrigins(appConfig.clientUrl),
       credentials: true,
     })
   );
 
-  app.use(express.json({ limit: config.jsonBodyLimit }));
+  app.use(cookieParser());
+  app.use(express.json({ limit: appConfig.jsonBodyLimit }));
+
+  const authRateLimiter = createAuthRateLimiter(appConfig);
 
   const apiRouter = express.Router();
   apiRouter.use(healthRoutes);
-  app.use(config.apiPrefix, apiRouter);
+  apiRouter.use("/auth", authRateLimiter, authRoutes);
+  apiRouter.use("/documents", documentRoutes);
+  apiRouter.use("/care-plans", carePlanRoutes);
+  apiRouter.use("/tasks", taskRoutes);
+  apiRouter.use("/follow-ups", followUpRoutes);
+  apiRouter.use("/reminders", reminderRoutes);
+  apiRouter.use("/chat", chatRoutes);
 
-  // Legacy path for the existing React client health check (GET /api/health).
+  app.use(appConfig.apiPrefix, apiRouter);
+
   app.get("/api/health", (_req, res) => {
     res.json({
       success: true,

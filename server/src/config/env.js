@@ -22,6 +22,8 @@ export function loadEnv() {
     mongodbUri: process.env.MONGODB_URI?.trim() || "",
     jwtSecret: process.env.JWT_SECRET?.trim() || "",
     jwtExpiresIn: process.env.JWT_EXPIRES_IN || "15m",
+    jwtIssuer: process.env.JWT_ISSUER || "dischargecare-api",
+    jwtAudience: process.env.JWT_AUDIENCE || "dischargecare-client",
     refreshTokenExpiresInDays: parsePositiveInt(
       process.env.REFRESH_TOKEN_EXPIRES_IN_DAYS,
       7
@@ -45,12 +47,19 @@ export function loadEnv() {
     errors.push("MONGODB_URI is required.");
   }
 
-  if (isProduction) {
-    if (!config.jwtSecret || config.jwtSecret === PLACEHOLDER_JWT) {
+  if (!config.jwtSecret) {
+    if (isProduction) {
       errors.push(
         "JWT_SECRET must be set to a strong random value in production."
       );
+    } else {
+      config.jwtSecret =
+        "development-only-jwt-secret-change-before-production";
     }
+  } else if (isProduction && config.jwtSecret === PLACEHOLDER_JWT) {
+    errors.push(
+      "JWT_SECRET must be set to a strong random value in production."
+    );
   }
 
   if (errors.length > 0) {

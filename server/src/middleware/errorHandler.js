@@ -31,6 +31,35 @@ export function errorHandler(err, req, res, _next) {
     });
   }
 
+  if (err?.name === "ValidationError") {
+    const details = Object.values(err.errors || {}).map((item) => ({
+      field: item.path,
+      message: item.message,
+    }));
+
+    return res.status(400).json({
+      success: false,
+      error: {
+        code: "VALIDATION_ERROR",
+        message: "The request contains invalid data.",
+        details,
+      },
+      requestId,
+    });
+  }
+
+  if (err?.code === 11000) {
+    return res.status(409).json({
+      success: false,
+      error: {
+        code: "DUPLICATE_KEY",
+        message: "A conflicting record already exists.",
+        details: [],
+      },
+      requestId,
+    });
+  }
+
   if (err?.type === "entity.parse.failed") {
     return res.status(400).json({
       success: false,

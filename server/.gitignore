@@ -1,5 +1,7 @@
 node_modules/
 .env
-uploads/
-storage/*
-!storage/.gitkeep
+.env.*
+!.env.example
+dist/
+coverage/
+npm-debug.log*
