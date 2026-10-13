@@ -67,6 +67,22 @@ const followUpSchema = new mongoose.Schema(
       type: [sourceReferenceSchema],
       default: [],
     },
+    origin: {
+      type: String,
+      enum: ["source_extracted", "caregiver_entered"],
+      default: "caregiver_entered",
+    },
+    sourceExtracted: {
+      appointmentDate: { type: Date, default: null },
+      appointmentTime: { type: String, default: null, trim: true },
+      location: { type: String, default: null, trim: true },
+      instructions: { type: String, default: null, trim: true },
+    },
+    sourceFingerprint: {
+      type: String,
+      default: null,
+      trim: true,
+    },
   },
   {
     timestamps: true,
@@ -74,5 +90,12 @@ const followUpSchema = new mongoose.Schema(
 );
 
 followUpSchema.index({ userId: 1, appointmentDate: 1 });
+followUpSchema.index(
+  { carePlanId: 1, sourceFingerprint: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { sourceFingerprint: { $type: "string" } },
+  }
+);
 
 export const FollowUp = mongoose.model("FollowUp", followUpSchema);

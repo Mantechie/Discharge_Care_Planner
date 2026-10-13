@@ -28,7 +28,16 @@ export function loadEnv() {
       process.env.REFRESH_TOKEN_EXPIRES_IN_DAYS,
       7
     ),
-    aiProvider: process.env.AI_PROVIDER || "mock",
+    aiProvider: (process.env.AI_PROVIDER || "mock").toLowerCase(),
+    aiApiKey: process.env.AI_API_KEY?.trim() || process.env.GEMINI_API_KEY?.trim() || "",
+    aiModel: process.env.AI_MODEL?.trim() || process.env.GEMINI_MODEL?.trim() || "",
+    aiTimeoutMs: parsePositiveInt(process.env.AI_TIMEOUT_MS, 45000),
+    aiMaxRetries: parsePositiveInt(process.env.AI_MAX_RETRIES, 2),
+    aiRetryDelayMs: parsePositiveInt(process.env.AI_RETRY_DELAY_MS, 1000),
+    aiMaxInputChars: parsePositiveInt(process.env.AI_MAX_INPUT_CHARS, 120000),
+    aiMaxPages: parsePositiveInt(process.env.AI_MAX_PAGES, 40),
+    allowTestExtractionFixture:
+      (process.env.ALLOW_TEST_EXTRACTION_FIXTURE || "").toLowerCase() === "true",
     uploadDir: process.env.UPLOAD_DIR || "./storage",
     maxFileSizeMb: parsePositiveInt(process.env.MAX_FILE_SIZE_MB, 10),
     jsonBodyLimit: process.env.JSON_BODY_LIMIT || "1mb",
@@ -54,6 +63,25 @@ export function loadEnv() {
       (process.env.ENABLE_WEBP_UPLOADS || "true").toLowerCase() === "true",
     defaultLanguage: process.env.DEFAULT_LANGUAGE || "en",
     defaultReminderTime: process.env.DEFAULT_REMINDER_TIME || "06:00",
+    chatMaxMessageLength: parsePositiveInt(process.env.CHAT_MAX_MESSAGE_LENGTH, 2000),
+    chatMaxRetrievalChars: parsePositiveInt(
+      process.env.CHAT_MAX_RETRIEVAL_CHARS,
+      12000
+    ),
+    chatMaxPassages: parsePositiveInt(process.env.CHAT_MAX_PASSAGES, 8),
+    chatMaxHistoryMessages: parsePositiveInt(
+      process.env.CHAT_MAX_HISTORY_MESSAGES,
+      200
+    ),
+    chatRateLimitMax: parsePositiveInt(process.env.CHAT_RATE_LIMIT_MAX, 30),
+    extractionRateLimitMax: parsePositiveInt(
+      process.env.EXTRACTION_RATE_LIMIT_MAX,
+      10
+    ),
+    disableExtractionRateLimit: false,
+    allowTestChatFixture:
+      (process.env.ALLOW_TEST_CHAT_FIXTURE || "").toLowerCase() === "true",
+    emergencyContactNumber: process.env.EMERGENCY_CONTACT_NUMBER?.trim() || "",
   };
 
   const errors = [];
@@ -75,6 +103,24 @@ export function loadEnv() {
     errors.push(
       "JWT_SECRET must be set to a strong random value in production."
     );
+  }
+
+  if (isProduction) {
+    if (config.aiProvider === "mock") {
+      errors.push("AI_PROVIDER cannot be mock in production.");
+    }
+
+    if (config.allowTestExtractionFixture) {
+      errors.push("ALLOW_TEST_EXTRACTION_FIXTURE must be false in production.");
+    }
+
+    if (config.allowTestChatFixture) {
+      errors.push("ALLOW_TEST_CHAT_FIXTURE must be false in production.");
+    }
+
+    if (!config.aiApiKey && config.aiProvider === "gemini") {
+      errors.push("AI_API_KEY is required when AI_PROVIDER=gemini in production.");
+    }
   }
 
   if (errors.length > 0) {

@@ -1,4 +1,11 @@
 import { PDFDocument, StandardFonts } from "pdf-lib";
+import { EXTRACTION_FIXTURE_MARKER } from "../../src/services/extraction.fixtures.js";
+
+export async function createFixtureExtractionPdfBytes() {
+  return createSyntheticPdfBytes(
+    `${EXTRACTION_FIXTURE_MARKER}\nTake one tablet twice daily after food.\nRest and drink fluids as documented.\nReturn if fever persists.\nFollow up with physician.`
+  );
+}
 
 export async function createSyntheticPdfBytes(text = "Synthetic discharge summary test line.") {
   const pdf = await PDFDocument.create();

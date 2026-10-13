@@ -31,5 +31,17 @@ export function getTestAppConfig() {
     minReadableTextChars: 10,
     processingTimeoutMs: 60000,
     enableWebpUploads: true,
+    aiProvider: "mock",
+    allowTestExtractionFixture: true,
+    aiTimeoutMs: 45000,
+    aiMaxRetries: 1,
+    aiRetryDelayMs: 100,
+    aiMaxInputChars: 120000,
+    aiMaxPages: 40,
+    defaultLanguage: "en",
+    disableChatRateLimit: true,
+    disableExtractionRateLimit: true,
+    allowTestChatFixture: true,
+    chatMaxMessageLength: 2000,
   };
 }

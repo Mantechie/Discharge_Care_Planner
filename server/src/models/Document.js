@@ -70,6 +70,17 @@ const documentSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    aiExtractionStatus: {
+      type: String,
+      enum: ["idle", "processing", "completed", "failed", "unavailable"],
+      default: "idle",
+      index: true,
+    },
+    activeCarePlanId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "CarePlan",
+      default: null,
+    },
     extractionMethod: {
       type: String,
       enum: ["pdf_text", "ocr", "mixed", null],

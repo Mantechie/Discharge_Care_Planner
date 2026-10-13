@@ -10,7 +10,8 @@ import carePlanRoutes from "./routes/carePlan.routes.js";
 import taskRoutes from "./routes/task.routes.js";
 import followUpRoutes from "./routes/followUp.routes.js";
 import reminderRoutes from "./routes/reminder.routes.js";
-import chatRoutes from "./routes/chat.routes.js";
+import userRoutes from "./routes/user.routes.js";
+import { createChatRouter } from "./routes/chat.routes.js";
 import {
   errorHandler,
   notFoundHandler,
@@ -34,6 +35,22 @@ export function createApp(config) {
     maxFileSizeMb: 10,
     uploadDir: "./storage",
     ocrProvider: "none",
+    aiProvider: "mock",
+    allowTestExtractionFixture: false,
+    aiTimeoutMs: 45000,
+    aiMaxRetries: 2,
+    aiRetryDelayMs: 1000,
+    aiMaxInputChars: 120000,
+    aiMaxPages: 40,
+    defaultLanguage: "en",
+    chatMaxMessageLength: 2000,
+    chatMaxRetrievalChars: 12000,
+    chatMaxPassages: 8,
+    chatMaxHistoryMessages: 200,
+    chatRateLimitMax: 30,
+    disableChatRateLimit: false,
+    allowTestChatFixture: false,
+    emergencyContactNumber: "",
     refreshTokenExpiresInDays: 7,
     jwtExpiresIn: "15m",
     jwtIssuer: "dischargecare-api",
@@ -75,8 +92,9 @@ export function createApp(config) {
   apiRouter.use("/care-plans", carePlanRoutes);
   apiRouter.use("/tasks", taskRoutes);
   apiRouter.use("/follow-ups", followUpRoutes);
+  apiRouter.use("/users", userRoutes);
   apiRouter.use("/reminders", reminderRoutes);
-  apiRouter.use("/chat", chatRoutes);
+  apiRouter.use("/chat", createChatRouter(appConfig));
 
   app.use(appConfig.apiPrefix, apiRouter);
 

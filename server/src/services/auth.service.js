@@ -22,11 +22,13 @@ function isDuplicateKeyError(error) {
 }
 
 export async function registerUser(
-  { name, email, password },
-  { refreshTokenExpiresInDays }
+  { name, email, password, preferredLanguage, timezone },
+  { refreshTokenExpiresInDays, defaultLanguage }
 ) {
   const normalizedEmail = normalizeEmail(email);
   const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+  const userTimezone = timezone || "Asia/Kolkata";
+  const userLanguage = preferredLanguage || defaultLanguage || "en";
 
   let user;
 
@@ -35,8 +37,8 @@ export async function registerUser(
       name,
       email: normalizedEmail,
       passwordHash,
-      preferredLanguage: "en",
-      timezone: "Asia/Kolkata",
+      preferredLanguage: userLanguage,
+      timezone: userTimezone,
     });
   } catch (error) {
     if (isDuplicateKeyError(error)) {
@@ -45,7 +47,11 @@ export async function registerUser(
     throw error;
   }
 
-  await ReminderSetting.create({ userId: user._id });
+  await ReminderSetting.create({
+    userId: user._id,
+    timezone: userTimezone,
+    reviewTime: "06:00",
+  });
 
   const session = await createRefreshSession(user._id, {
     refreshTokenExpiresInDays,

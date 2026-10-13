@@ -75,6 +75,15 @@ const taskSchema = new mongoose.Schema(
       type: [sourceReferenceSchema],
       default: [],
     },
+    isSourceDerived: {
+      type: Boolean,
+      default: false,
+    },
+    sourceFingerprint: {
+      type: String,
+      default: null,
+      trim: true,
+    },
   },
   {
     timestamps: true,
@@ -82,5 +91,12 @@ const taskSchema = new mongoose.Schema(
 );
 
 taskSchema.index({ userId: 1, scheduledDate: 1 });
+taskSchema.index(
+  { carePlanId: 1, sourceFingerprint: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { sourceFingerprint: { $type: "string" } },
+  }
+);
 
 export const Task = mongoose.model("Task", taskSchema);

@@ -1,7 +1,10 @@
 import { Router } from "express";
 import { authenticate } from "../middleware/authenticate.js";
 import { createUploadMiddleware } from "../middleware/upload.middleware.js";
-import { createUploadRateLimiter } from "../middleware/rateLimiter.js";
+import {
+  createUploadRateLimiter,
+  createExtractionRateLimiter,
+} from "../middleware/rateLimiter.js";
 import {
   uploadDocument,
   listDocuments,
@@ -12,6 +15,11 @@ import {
   reprocessDocument,
   deleteDocument,
 } from "../controllers/document.controller.js";
+import {
+  extractDocument,
+  getDocumentExtraction,
+  reprocessExtraction,
+} from "../controllers/extraction.controller.js";
 
 const router = Router();
 
@@ -40,7 +48,26 @@ router.post("/", (req, res, next) => {
 
 router.get("/:documentId/status", getDocumentStatus);
 router.get("/:documentId/source", getDocumentSource);
+router.get("/:documentId/extraction", getDocumentExtraction);
 router.get("/:documentId/file", downloadDocumentFile);
+router.post("/:documentId/extract", (req, res, next) => {
+  const limiter = createExtractionRateLimiter(req.app.get("config"));
+  limiter(req, res, (error) => {
+    if (error) {
+      return next(error);
+    }
+    extractDocument(req, res, next);
+  });
+});
+router.post("/:documentId/reprocess-extraction", (req, res, next) => {
+  const limiter = createExtractionRateLimiter(req.app.get("config"));
+  limiter(req, res, (error) => {
+    if (error) {
+      return next(error);
+    }
+    reprocessExtraction(req, res, next);
+  });
+});
 router.post("/:documentId/reprocess", reprocessDocument);
 router.get("/:documentId", getDocument);
 router.delete("/:documentId", deleteDocument);
