@@ -1,11 +1,9 @@
-import { Document } from "../models/Document.js";
 import { Task } from "../models/Task.js";
 import { FollowUp } from "../models/FollowUp.js";
 import { ReminderSetting } from "../models/ReminderSetting.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import {
-  getOwnedDocument,
   getOwnedCarePlan,
   getOwnedTask,
   getOwnedFollowUp,
@@ -13,19 +11,6 @@ import {
   assertOwnedCarePlanAndDocument,
   getChatHistoryForDocument,
 } from "../services/ownership.service.js";
-
-function toDocumentResponse(document) {
-  return {
-    id: document._id.toString(),
-    originalFilename: document.originalFilename,
-    mimeType: document.mimeType,
-    fileSize: document.fileSize,
-    status: document.status,
-    extractionMethod: document.extractionMethod,
-    createdAt: document.createdAt,
-    updatedAt: document.updatedAt,
-  };
-}
 
 function toCarePlanResponse(carePlan) {
   return {
@@ -44,29 +29,6 @@ function toCarePlanResponse(carePlan) {
     updatedAt: carePlan.updatedAt,
   };
 }
-
-export const listDocuments = asyncHandler(async (req, res) => {
-  const documents = await Document.find({
-    userId: req.user.id,
-    deletedAt: null,
-  })
-    .sort({ createdAt: -1 })
-    .select("-storageKey -extractedText");
-
-  res.json({
-    success: true,
-    data: documents.map(toDocumentResponse),
-  });
-});
-
-export const getDocument = asyncHandler(async (req, res) => {
-  const document = await getOwnedDocument(req.user.id, req.params.documentId);
-
-  res.json({
-    success: true,
-    data: toDocumentResponse(document),
-  });
-});
 
 export const getCarePlan = asyncHandler(async (req, res) => {
   const carePlan = await getOwnedCarePlan(req.user.id, req.params.carePlanId);

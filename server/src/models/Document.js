@@ -46,6 +46,30 @@ const documentSchema = new mongoose.Schema(
       default: null,
       select: false,
     },
+    extractedPages: {
+      type: [
+        {
+          pageNumber: { type: Number, min: 1, required: true },
+          text: { type: String, default: "" },
+          extractionSource: {
+            type: String,
+            enum: ["pdf_text", "ocr"],
+            required: true,
+          },
+        },
+      ],
+      default: [],
+      select: false,
+    },
+    pageCount: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    hasReadableText: {
+      type: Boolean,
+      default: false,
+    },
     extractionMethod: {
       type: String,
       enum: ["pdf_text", "ocr", "mixed", null],

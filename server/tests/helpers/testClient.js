@@ -82,8 +82,13 @@ export class TestClient {
       requestHeaders.Authorization = `Bearer ${authToken}`;
     }
 
-    if (this.csrfToken && !requestHeaders["X-CSRF-Token"]) {
-      requestHeaders["X-CSRF-Token"] = this.csrfToken;
+    const csrfCookie = this.cookies.get("dc_csrf_token");
+
+    if (csrfCookie && !requestHeaders["X-CSRF-Token"]) {
+      requestHeaders["X-CSRF-Token"] = csrfCookie;
+      this.csrfToken = csrfCookie;
+    } else if (!csrfCookie) {
+      this.csrfToken = null;
     }
 
     const response = await fetch(`http://127.0.0.1:${this.port}${path}`, {

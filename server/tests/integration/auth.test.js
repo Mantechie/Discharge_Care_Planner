@@ -212,6 +212,7 @@ test("reused revoked refresh token is rejected", async () => {
   await client.request("/api/v1/auth/refresh", { method: "POST" });
 
   client.cookies.set("dc_refresh_token", oldRefresh);
+  client.cookies.set("dc_csrf_token", oldCsrf);
   client.csrfToken = oldCsrf;
 
   const { response, body } = await client.request("/api/v1/auth/refresh", {

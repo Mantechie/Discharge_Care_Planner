@@ -5,3 +5,6 @@ node_modules/
 dist/
 coverage/
 npm-debug.log*
+storage/*
+!storage/.gitkeep
+tests/.tmp-storage/

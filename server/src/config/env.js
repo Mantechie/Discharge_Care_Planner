@@ -37,6 +37,21 @@ export function loadEnv() {
       process.env.RATE_LIMIT_MAX_REQUESTS,
       60
     ),
+    authRateLimitMax: parsePositiveInt(process.env.AUTH_RATE_LIMIT_MAX, 20),
+    uploadRateLimitMax: parsePositiveInt(process.env.UPLOAD_RATE_LIMIT_MAX, 10),
+    maxFilesPerRequest: parsePositiveInt(process.env.MAX_FILES_PER_REQUEST, 1),
+    ocrProvider: (process.env.OCR_PROVIDER || "none").toLowerCase(),
+    ocrLanguages: process.env.OCR_LANGUAGES || "eng+hin",
+    processingTimeoutMs: parsePositiveInt(
+      process.env.PROCESSING_TIMEOUT_MS,
+      120000
+    ),
+    minReadableTextChars: parsePositiveInt(
+      process.env.MIN_READABLE_TEXT_CHARS,
+      40
+    ),
+    enableWebpUploads:
+      (process.env.ENABLE_WEBP_UPLOADS || "true").toLowerCase() === "true",
     defaultLanguage: process.env.DEFAULT_LANGUAGE || "en",
     defaultReminderTime: process.env.DEFAULT_REMINDER_TIME || "06:00",
   };

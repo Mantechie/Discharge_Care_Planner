@@ -5,6 +5,10 @@ export function requireCsrfToken(req, _res, next) {
   const cookieToken = req.cookies?.[getCsrfCookieName()];
   const headerToken = req.headers["x-csrf-token"];
 
+  if (!cookieToken && !headerToken) {
+    return next();
+  }
+
   if (
     !cookieToken ||
     !headerToken ||

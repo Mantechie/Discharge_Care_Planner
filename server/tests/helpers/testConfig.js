@@ -1,4 +1,13 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import fs from "node:fs";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const testStorageRoot = path.join(__dirname, "..", ".tmp-storage");
+
 export function getTestAppConfig() {
+  fs.mkdirSync(testStorageRoot, { recursive: true });
+
   return {
     clientUrl: "http://localhost:5173",
     apiPrefix: "/api/v1",
@@ -11,5 +20,16 @@ export function getTestAppConfig() {
     isProduction: false,
     rateLimitWindowMs: 60000,
     rateLimitMaxRequests: 200,
+    disableAuthRateLimit: true,
+    disableUploadRateLimit: true,
+    uploadDir: testStorageRoot,
+    maxFileSizeMb: 10,
+    maxFilesPerRequest: 1,
+    ocrProvider: "mock",
+    allowTestOcrMock: true,
+    ocrLanguages: "eng",
+    minReadableTextChars: 10,
+    processingTimeoutMs: 60000,
+    enableWebpUploads: true,
   };
 }
